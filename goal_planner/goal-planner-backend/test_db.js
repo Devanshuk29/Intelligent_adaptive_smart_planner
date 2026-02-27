@@ -1,4 +1,4 @@
-const pool = require('./config/database');
+const pool = require('../config/database.js');
 
 pool.query('SELECT * FROM users', (err, res) => {
   if (err) {
