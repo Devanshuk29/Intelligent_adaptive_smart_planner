@@ -1,25 +1,14 @@
 const express = require('express');
 const { verifyToken } = require('../middleware/auth');
+const { createGoal, getAllGoals, getGoal } = require('../controllers/goalController');
+
 
 const router = express.Router();
 
-router.post('/', verifyToken, (req, res) => {
-  const userId = req.userId;
-  const { name, description, deadline, difficulty, time_per_week } = req.body;
-  
-  res.json({ 
-    message: 'Goal created (testing)',
-    userId: userId,
-    goal: { name, description, deadline, difficulty, time_per_week }
-  });
-});
+router.post('/', verifyToken, createGoal);
 
-router.get('/', verifyToken, (req, res) => {
-  const userId = req.userId;
-  res.json({ 
-    message: 'Getting goals for user',
-    userId: userId
-  });
-});
+router.get('/', verifyToken, getAllGoals);
+
+router.get('/:id', verifyToken, getGoal);
 
 module.exports = router;
