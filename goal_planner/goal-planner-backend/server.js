@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const goalsRoutes = require('./routes/goals');
+const tasksRoutes = require('./routes/tasks');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/goals', goalsRoutes);
+app.use('/api/tasks', tasksRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running!' });
