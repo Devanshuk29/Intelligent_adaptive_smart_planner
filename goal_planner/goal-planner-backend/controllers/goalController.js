@@ -1,4 +1,6 @@
 const pool = require('../config/database');
+const { generateRoadmap } = require('../services/roadmapGenerator');
+
 
 const createGoal = async (req, res) => {
   try {
@@ -38,18 +40,53 @@ const createGoal = async (req, res) => {
       });
     }
 
-    const result = await pool.query(
+    const roadmapResult = generateRoadmap(deadline, difficulty.toLowerCase(), time_per_week);
+    
+    if (!roadmapResult.success) {
+      return res.status(400).json({
+        error: roadmapResult.error
+      });
+    }
+
+    const goalResult = await pool.query(
       `INSERT INTO goals (user_id, name, description, deadline, difficulty, time_per_week, progress, status)
        VALUES ($1, $2, $3, $4, $5, $6, 0, 'in_progress')
        RETURNING id, user_id, name, description, deadline, difficulty, time_per_week, progress, status, created_at`,
       [userId, name, description || null, deadline, difficulty.toLowerCase(), time_per_week]
     );
 
-    const goal = result.rows[0];
+    const goal = goalResult.rows[0];
+    const goalId = goal.id;
+
+    for (const milestone of roadmapResult.milestones) {
+    
+      const milestoneResult = await pool.query(
+        `INSERT INTO milestones (goal_id, name, start_date, end_date, completed)
+         VALUES ($1, $2, $3, $4, false)
+         RETURNING id`,
+        [goalId, milestone.name, milestone.startDate, milestone.endDate]
+      );
+
+      const milestoneId = milestoneResult.rows[0].id;
+
+      for (const task of milestone.tasks) {
+        await pool.query(
+          `INSERT INTO tasks (goal_id, milestone_id, name, description, estimated_time, due_date, completed)
+           VALUES ($1, $2, $3, $4, $5, $6, false)`,
+          [goalId, milestoneId, task.name, null, task.estimatedHours, task.endDate]
+        );
+      }
+    }
 
     res.status(201).json({
-      message: 'Goal created successfully',
-      goal
+      message: 'Goal created successfully with roadmap',
+      goal,
+      roadmap: {
+        totalWeeks: roadmapResult.totalWeeks,
+        totalHours: roadmapResult.totalHours,
+        milestonesCount: roadmapResult.milestonesCount,
+        milestones: roadmapResult.milestones
+      }
     });
 
   } catch (error) {
