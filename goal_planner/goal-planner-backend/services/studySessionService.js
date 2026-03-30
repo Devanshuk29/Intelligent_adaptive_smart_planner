@@ -32,7 +32,7 @@ const logStudySession = async (userId, goalId, durationMinutes, pomodorosComplet
       `INSERT INTO study_sessions (user_id, goal_id, duration_minutes, pomodoros_completed)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [userId, goalId, durationMinutes, pomodorosCompleted || 1]
+      [userId, goalId, durationMinutes, Math.round(pomodorosCompleted || durationMinutes / 25)]
     );
 
     const session = sessionResult.rows[0];

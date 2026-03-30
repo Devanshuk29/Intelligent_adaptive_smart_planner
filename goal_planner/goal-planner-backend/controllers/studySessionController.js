@@ -1,4 +1,5 @@
 const { logStudySession, getStudyStats } = require('../services/studySessionService');
+const { updateStreak } = require('../services/streakService');
 
 const createStudySession = async (req, res) => {
   try {
@@ -36,10 +37,13 @@ const createStudySession = async (req, res) => {
       });
     }
 
+    const streakResult = await updateStreak(userId);
+
     res.status(201).json({
       message: 'Study session logged successfully',
       session: result.session,
-      weekStats: result.weekStats
+      weekStats: result.weekStats,
+      streak: streakResult.success ? streakResult.streak : null
     });
 
   } catch (error) {
