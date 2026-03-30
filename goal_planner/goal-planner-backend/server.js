@@ -9,6 +9,7 @@ const studySessionRoutes = require('./routes/studySessions');
 const streakRoutes = require('./routes/streaks');
 const confidenceRoutes = require('./routes/confidence');
 const resourceRoutes = require('./routes/resources');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/api/study-sessions', studySessionRoutes);
 app.use('/api/streaks', streakRoutes);
 app.use('/api/confidence', confidenceRoutes);
 app.use('/api/resources', resourceRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running!' });
