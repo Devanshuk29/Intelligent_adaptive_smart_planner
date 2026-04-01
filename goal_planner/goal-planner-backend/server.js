@@ -11,6 +11,7 @@ const confidenceRoutes = require('./routes/confidence');
 const resourceRoutes = require('./routes/resources');
 const aiRoutes = require('./routes/ai');
 const analyticsRoutes = require('./routes/analytics');
+const exportRoutes = require('./routes/exports');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/confidence', confidenceRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/exports', exportRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running!' });
