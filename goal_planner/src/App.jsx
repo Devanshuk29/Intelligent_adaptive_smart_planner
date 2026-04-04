@@ -10,6 +10,7 @@ import GoalRoadmapPage from './pages/GoalRoadmapPage';
 import TasksPage from './pages/TasksPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ResourcesPage from './pages/ResourcesPage';
+import ViewGoalsPage from './pages/ViewGoalsPage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
@@ -48,6 +49,14 @@ function AppContent() {
             <CreateGoalPage />
           </ProtectedRoute>
         }
+      />
+      <Route 
+        path="/goals" 
+        element={
+          <ProtectedRoute>
+            <ViewGoalsPage />
+          </ProtectedRoute>
+        } 
       />
       <Route
         path="/goal/:goalId"
