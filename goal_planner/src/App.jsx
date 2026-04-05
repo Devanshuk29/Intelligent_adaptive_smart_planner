@@ -11,6 +11,7 @@ import TasksPage from './pages/TasksPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ResourcesPage from './pages/ResourcesPage';
 import ViewGoalsPage from './pages/ViewGoalsPage';
+import LogStudySessionPage from './pages/LogStudySessionPage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
@@ -73,6 +74,14 @@ function AppContent() {
             <TasksPage />
           </ProtectedRoute>
         }
+      />
+      <Route 
+        path="/log-study-session" 
+        element={
+          <ProtectedRoute>
+            <LogStudySessionPage />
+          </ProtectedRoute>
+        } 
       />
       <Route
         path="/analytics/:goalId"
