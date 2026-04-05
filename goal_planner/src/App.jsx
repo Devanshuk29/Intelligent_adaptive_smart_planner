@@ -12,6 +12,8 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import ResourcesPage from './pages/ResourcesPage';
 import ViewGoalsPage from './pages/ViewGoalsPage';
 import LogStudySessionPage from './pages/LogStudySessionPage';
+import ConfidencePage from './pages/ConfidencePage';
+import InterviewReadinessPage from './pages/InterviewReadinessPage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
@@ -88,6 +90,22 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <AnalyticsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/confidence/:goalId"
+        element={
+          <ProtectedRoute>
+            <ConfidencePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/interview-readiness/:goalId"
+        element={
+          <ProtectedRoute>
+            <InterviewReadinessPage />
           </ProtectedRoute>
         }
       />
