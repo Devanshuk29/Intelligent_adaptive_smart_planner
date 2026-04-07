@@ -14,6 +14,9 @@ import ViewGoalsPage from './pages/ViewGoalsPage';
 import LogStudySessionPage from './pages/LogStudySessionPage';
 import ConfidencePage from './pages/ConfidencePage';
 import InterviewReadinessPage from './pages/InterviewReadinessPage';
+import SearchResourcesPage from './pages/SearchResourcesPage';
+import SavedResourcesPage from './pages/SavedResourcesPage';
+import SmartRecommendationsPage from './pages/SmartRecommendationsPage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
@@ -84,6 +87,30 @@ function AppContent() {
             <LogStudySessionPage />
           </ProtectedRoute>
         } 
+      />
+      <Route
+        path="/search-resources/:goalId"
+        element={
+          <ProtectedRoute>
+            <SearchResourcesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/saved-resources/:goalId"
+        element={
+          <ProtectedRoute>
+            <SavedResourcesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recommendations/:goalId"
+        element={
+          <ProtectedRoute>
+            <SmartRecommendationsPage />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/analytics/:goalId"

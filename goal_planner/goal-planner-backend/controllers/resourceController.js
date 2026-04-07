@@ -1,34 +1,30 @@
+const pool = require('../config/database');
 const { searchYouTubeVideos, saveResource, getGoalResources, getRecommendedResources } = require('../services/resourceService');
 
 const searchVideos = async (req, res) => {
   try {
-    const { topicName, maxResults } = req.body;
+    const { query } = req.body;
 
-    if (!topicName) {
+    if (!query) {
       return res.status(400).json({
-        error: 'topicName is required'
+        error: 'Search query is required'
       });
     }
 
-    const result = await searchYouTubeVideos(topicName, maxResults || 5);
+    console.log('Searching for:', query);
 
-    if (!result.success) {
-      return res.status(400).json({
-        error: result.error
-      });
-    }
+    const result = await searchYouTubeVideos(query, 12);
 
     res.json({
-      message: 'Videos found successfully',
-      topic: result.topic,
+      success: true,
       videos: result.videos,
       count: result.count
     });
 
   } catch (error) {
-    console.error('Search videos error:', error);
+    console.error('Search videos error:', error.message);
     res.status(500).json({
-      error: 'Server error while searching videos'
+      error: error.message || 'Server error while searching videos'
     });
   }
 };
@@ -36,7 +32,7 @@ const searchVideos = async (req, res) => {
 const saveResourceToDb = async (req, res) => {
   try {
     const userId = req.userId;
-    const { goalId, topicName, resourceType, resourceTitle, resourceUrl, description } = req.body;
+    const { goalId, topicName, resourceType, resourceTitle, resourceUrl } = req.body;
 
     if (!goalId || !topicName || !resourceType || !resourceTitle || !resourceUrl) {
       return res.status(400).json({
@@ -44,7 +40,20 @@ const saveResourceToDb = async (req, res) => {
       });
     }
 
-    const result = await saveResource(userId, goalId, topicName, resourceType, resourceTitle, resourceUrl, description);
+    console.log('Saving resource - user:', userId, 'goal:', goalId, 'topic:', topicName);
+
+    // Convert field names to match service expectations
+    const result = await saveResource(
+      userId,
+      goalId,
+      resourceTitle,  // title
+      null,           // description
+      resourceUrl,    // url
+      null,           // thumbnail
+      null,           // channel
+      resourceType,   // type
+      topicName       // topic
+    );
 
     if (!result.success) {
       return res.status(400).json({
@@ -58,9 +67,9 @@ const saveResourceToDb = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Save resource error:', error);
+    console.error('Save resource error:', error.message);
     res.status(500).json({
-      error: 'Server error while saving resource'
+      error: error.message || 'Server error while saving resource'
     });
   }
 };
@@ -68,28 +77,28 @@ const saveResourceToDb = async (req, res) => {
 const getResources = async (req, res) => {
   try {
     const userId = req.userId;
-    const goalId = req.params.goalId;
-    const resourceType = req.query.type || null;
+    const goalId = parseInt(req.params.goalId);
 
-    const result = await getGoalResources(userId, goalId, resourceType);
-
-    if (!result.success) {
+    if (!goalId) {
       return res.status(400).json({
-        error: result.error
+        error: 'goalId is required'
       });
     }
 
+    console.log('Fetching resources for user:', userId, 'goal:', goalId);
+
+    const result = await getGoalResources(userId, goalId, null);
+
     res.json({
-      message: 'Resources retrieved successfully',
-      total: result.total,
+      success: true,
       resources: result.resources,
-      byTopic: result.byTopic
+      count: result.count
     });
 
   } catch (error) {
-    console.error('Get resources error:', error);
+    console.error('Get resources error:', error.message);
     res.status(500).json({
-      error: 'Server error while fetching resources'
+      error: error.message || 'Server error while fetching resources'
     });
   }
 };
@@ -97,28 +106,77 @@ const getResources = async (req, res) => {
 const getRecommendations = async (req, res) => {
   try {
     const userId = req.userId;
-    const goalId = req.params.goalId;
+    const { goalId } = req.params;
 
-    const result = await getRecommendedResources(userId, goalId);
-
-    if (!result.success) {
+    if (!goalId) {
       return res.status(400).json({
-        error: result.error
+        error: 'goalId is required'
       });
     }
 
+    console.log('Fetching recommendations for goal:', goalId);
+
+    const result = await getRecommendedResources(userId, goalId);
+
     res.json({
-      message: result.message,
+      success: true,
       recommendations: result.recommendations,
-      totalRecommendations: result.recommendations.length
+      message: result.message
     });
 
   } catch (error) {
-    console.error('Get recommendations error:', error);
+    console.error('Get recommendations error:', error.message);
     res.status(500).json({
-      error: 'Server error while generating recommendations'
+      error: error.message || 'Server error while generating recommendations'
     });
   }
 };
 
-module.exports = { searchVideos, saveResourceToDb, getResources, getRecommendations };
+const deleteResource = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { resourceId } = req.params;
+
+    if (!resourceId) {
+      return res.status(400).json({
+        error: 'resourceId is required'
+      });
+    }
+
+    console.log('Deleting resource:', resourceId, 'user:', userId);
+
+    // First verify the resource belongs to a goal owned by this user
+    const resourceCheck = await pool.query(
+      `SELECT r.id FROM resources r 
+       JOIN goals g ON r.goal_id = g.id 
+       WHERE r.id = $1 AND g.user_id = $2`,
+      [resourceId, userId]
+    );
+
+    if (resourceCheck.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Resource not found or does not belong to you'
+      });
+    }
+
+    // Delete the resource
+    const result = await pool.query(
+      'DELETE FROM resources WHERE id = $1 RETURNING id',
+      [resourceId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Resource deleted successfully',
+      resourceId: result.rows[0].id
+    });
+
+  } catch (error) {
+    console.error('Delete resource error:', error.message);
+    res.status(500).json({
+      error: error.message || 'Server error while deleting resource'
+    });
+  }
+};
+
+module.exports = { searchVideos, saveResourceToDb, getResources, getRecommendations, deleteResource };
