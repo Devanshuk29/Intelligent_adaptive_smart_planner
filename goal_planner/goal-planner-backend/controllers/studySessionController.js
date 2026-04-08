@@ -1,5 +1,6 @@
 const { logStudySession, getStudyStats } = require('../services/studySessionService');
 const { updateStreak } = require('../services/streakService');
+const pool = require('../config/database');
 
 const createStudySession = async (req, res) => {
   try {
@@ -79,4 +80,42 @@ const getStats = async (req, res) => {
   }
 };
 
-module.exports = { createStudySession, getStats };
+const getStudySessionsForGoal = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { goalId } = req.params;
+
+    if (!goalId) {
+      return res.status(400).json({
+        error: 'goalId is required'
+      });
+    }
+
+    console.log('Fetching study sessions - user:', userId, 'goal:', goalId);
+
+    // Query study sessions directly from database
+    const result = await pool.query(
+      `SELECT id, user_id, goal_id, duration_minutes, pomodoros_completed, created_at
+       FROM study_sessions
+       WHERE goal_id = $1 AND user_id = $2
+       ORDER BY created_at DESC`,
+      [goalId, userId]
+    );
+
+    console.log(`Found ${result.rows.length} study sessions for goal ${goalId}`);
+
+    res.json({
+      success: true,
+      sessions: result.rows,
+      count: result.rows.length
+    });
+
+  } catch (error) {
+    console.error('Get study sessions error:', error.message);
+    res.status(500).json({
+      error: error.message || 'Server error while fetching study sessions'
+    });
+  }
+};
+
+module.exports = { createStudySession, getStats, getStudySessionsForGoal };

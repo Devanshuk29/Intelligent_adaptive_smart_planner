@@ -86,54 +86,59 @@ const LogStudySessionPage = () => {
 
   // Submit study session
   const handleSubmitSession = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!selectedGoalId || !duration || duration < 1) {
-      setError('Please select a goal and enter valid duration');
-      return;
-    }
+  if (!selectedGoalId || !duration || duration < 1) {
+    setError('Please select a goal and enter valid duration');
+    return;
+  }
 
-    setSubmitting(true);
-    setError('');
-    setSuccess('');
+  setSubmitting(true);
+  setError('');
+  setSuccess('');
 
-    try {
-      const pomodoros = calculatePomodoros(duration);
+  try {
+    const pomodoros = calculatePomodoros(duration);
 
-      const response = await axios.post(
-        `${API_URL}/study-sessions`,
-        {
-          goal_id: selectedGoalId,
-          duration_minutes: duration,
-          topic: topic || null,
-          pomodoros_completed: pomodoros
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+    console.log('Submitting study session:', {
+      goalId: parseInt(selectedGoalId),
+      durationMinutes: parseInt(duration),
+      pomodorosCompleted: pomodoros
+    });
 
-      console.log('Study session logged:', response.data);
+    const response = await axios.post(
+      `${API_URL}/study-sessions`,
+      {
+        goalId: parseInt(selectedGoalId),
+        durationMinutes: parseInt(duration),
+        pomodorosCompleted: pomodoros
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
 
-      // Show success message
-      setSuccess(`✅ ${pomodoros} pomodoro${pomodoros !== 1 ? 's' : ''} logged! Great work! 🔥`);
+    console.log('Study session logged:', response.data);
 
-      // Reset form
-      setTimeout(() => {
-        setDuration(25);
-        setTopic('');
-        setSuccess('');
-        navigate('/tasks');
-      }, 2000);
+    // Show success message
+    setSuccess(`✅ ${pomodoros} pomodoro${pomodoros !== 1 ? 's' : ''} logged! Great work! 🔥`);
 
-    } catch (err) {
-      console.error('Submit session error:', err);
-      const errorMsg = err.response?.data?.error || 'Failed to log session. Please try again.';
-      setError(errorMsg);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    // Reset form
+    setTimeout(() => {
+      setDuration(25);
+      setTopic('');
+      setSuccess('');
+      navigate('/tasks');
+    }, 2000);
+
+  } catch (err) {
+    console.error('Submit session error:', err);
+    const errorMsg = err.response?.data?.error || 'Failed to log session. Please try again.';
+    setError(errorMsg);
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   if (loading) {
     return (

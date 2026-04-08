@@ -17,6 +17,7 @@ import InterviewReadinessPage from './pages/InterviewReadinessPage';
 import SearchResourcesPage from './pages/SearchResourcesPage';
 import SavedResourcesPage from './pages/SavedResourcesPage';
 import SmartRecommendationsPage from './pages/SmartRecommendationsPage';
+import ExportPage from './pages/ExportPage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
@@ -37,24 +38,26 @@ function AppContent() {
 
   return (
     <Routes>
+      {/* PUBLIC ROUTES */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
 
-      <Route
-        path="/dashboard"
+      {/* SPECIFIC ROUTES (NON-DYNAMIC) - BEFORE DYNAMIC ROUTES */}
+      <Route 
+        path="/dashboard" 
         element={
           <ProtectedRoute>
             <DashboardPage />
           </ProtectedRoute>
-        }
+        } 
       />
-      <Route
-        path="/create-goal"
+      <Route 
+        path="/create-goal" 
         element={
           <ProtectedRoute>
             <CreateGoalPage />
           </ProtectedRoute>
-        }
+        } 
       />
       <Route 
         path="/goals" 
@@ -64,21 +67,13 @@ function AppContent() {
           </ProtectedRoute>
         } 
       />
-      <Route
-        path="/goal/:goalId"
-        element={
-          <ProtectedRoute>
-            <GoalRoadmapPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/tasks"
+      <Route 
+        path="/tasks" 
         element={
           <ProtectedRoute>
             <TasksPage />
           </ProtectedRoute>
-        }
+        } 
       />
       <Route 
         path="/log-study-session" 
@@ -88,64 +83,86 @@ function AppContent() {
           </ProtectedRoute>
         } 
       />
-      <Route
-        path="/search-resources/:goalId"
+
+      {/* DYNAMIC ROUTES - AFTER SPECIFIC ROUTES */}
+      <Route 
+        path="/goal/:goalId" 
         element={
           <ProtectedRoute>
-            <SearchResourcesPage />
+            <GoalRoadmapPage />
           </ProtectedRoute>
-        }
+        } 
       />
-      <Route
-        path="/saved-resources/:goalId"
-        element={
-          <ProtectedRoute>
-            <SavedResourcesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/recommendations/:goalId"
-        element={
-          <ProtectedRoute>
-            <SmartRecommendationsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/analytics/:goalId"
-        element={
-          <ProtectedRoute>
-            <AnalyticsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/confidence/:goalId"
+      <Route 
+        path="/confidence/:goalId" 
         element={
           <ProtectedRoute>
             <ConfidencePage />
           </ProtectedRoute>
-        }
+        } 
       />
-      <Route
-        path="/interview-readiness/:goalId"
+      <Route 
+        path="/interview-readiness/:goalId" 
         element={
           <ProtectedRoute>
             <InterviewReadinessPage />
           </ProtectedRoute>
-        }
+        } 
       />
-      <Route
-        path="/resources/:goalId"
+      <Route 
+        path="/search-resources/:goalId" 
+        element={
+          <ProtectedRoute>
+            <SearchResourcesPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/saved-resources/:goalId" 
+        element={
+          <ProtectedRoute>
+            <SavedResourcesPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/recommendations/:goalId" 
+        element={
+          <ProtectedRoute>
+            <SmartRecommendationsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/analytics/:goalId" 
+        element={
+          <ProtectedRoute>
+            <AnalyticsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/export/:goalId" 
+        element={
+          <ProtectedRoute>
+            <ExportPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/resources/:goalId" 
         element={
           <ProtectedRoute>
             <ResourcesPage />
           </ProtectedRoute>
-        }
+        } 
       />
 
-      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+      {/* DEFAULT ROUTE */}
+      <Route 
+        path="/" 
+        element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} 
+      />
     </Routes>
   );
 }
