@@ -5,9 +5,7 @@ const { exportPDF, exportCSV, exportCalendar } = require('../controllers/exportC
 const router = express.Router();
 
 router.get('/pdf/:goalId', verifyToken, exportPDF);
-
-router.get('/csv', verifyToken, exportCSV);
-
+router.get('/csv/:goalId', verifyToken, exportCSV);
 router.get('/calendar/:goalId', verifyToken, exportCalendar);
 
 module.exports = router;

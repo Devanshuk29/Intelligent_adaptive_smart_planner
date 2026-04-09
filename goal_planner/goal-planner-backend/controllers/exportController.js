@@ -37,8 +37,15 @@ const exportPDF = async (req, res) => {
 const exportCSV = async (req, res) => {
   try {
     const userId = req.userId;
+    const goalId = req.params.goalId;  
 
-    const result = await generateCSVExport(userId);
+    if (!goalId) {
+      return res.status(400).json({
+        error: 'goalId is required'
+      });
+    }
+
+    const result = await generateCSVExport(userId, goalId);  
 
     if (!result.success) {
       return res.status(400).json({

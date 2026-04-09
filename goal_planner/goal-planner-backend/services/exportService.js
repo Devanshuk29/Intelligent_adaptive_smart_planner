@@ -109,28 +109,91 @@ const generatePDFReport = async (userId, goalId) => {
   }
 };
 
-const generateCSVExport = async (userId) => {
+const generateCSVExport = async (userId, goalId) => {
   try {
-    if (!userId) {
+    if (!userId || !goalId) {
       return {
         success: false,
-        error: 'userId is required'
+        error: 'userId and goalId are required'
       };
     }
 
-    const goalsResult = await pool.query(
-      'SELECT id, name, progress, status, deadline, difficulty FROM goals WHERE user_id = $1 ORDER BY created_at DESC',
-      [userId]
+    const goalResult = await pool.query(
+      'SELECT * FROM goals WHERE id = $1 AND user_id = $2',
+      [goalId, userId]
     );
 
-    const csvData = goalsResult.rows.map(goal => ({
-      'Goal Name': goal.name,
-      'Progress': `${goal.progress}%`,
-      'Status': goal.status,
-      'Difficulty': goal.difficulty,
-      'Deadline': new Date(goal.deadline).toLocaleDateString(),
-      'Goal ID': goal.id
-    }));
+    if (goalResult.rows.length === 0) {
+      return {
+        success: false,
+        error: 'Goal not found'
+      };
+    }
+
+    const goal = goalResult.rows[0];
+
+    const tasksResult = await pool.query(
+      'SELECT id, name, description, completed, due_date FROM tasks WHERE goal_id = $1 ORDER BY due_date ASC',
+      [goalId]
+    );
+
+    const milestonesResult = await pool.query(
+      'SELECT id, name, start_date, end_date, completed FROM milestones WHERE goal_id = $1 ORDER BY start_date ASC',
+      [goalId]
+    );
+
+    const csvData = [
+      {
+        'Section': 'GOAL SUMMARY',
+        'Field': 'Name',
+        'Value': goal.name
+      },
+      {
+        'Section': 'GOAL SUMMARY',
+        'Field': 'Progress',
+        'Value': `${goal.progress}%`
+      },
+      {
+        'Section': 'GOAL SUMMARY',
+        'Field': 'Status',
+        'Value': goal.status
+      },
+      {
+        'Section': 'GOAL SUMMARY',
+        'Field': 'Difficulty',
+        'Value': goal.difficulty
+      },
+      {
+        'Section': 'GOAL SUMMARY',
+        'Field': 'Deadline',
+        'Value': new Date(goal.deadline).toLocaleDateString()
+      },
+      {
+        'Section': 'GOAL SUMMARY',
+        'Field': 'Hours per Week',
+        'Value': goal.time_per_week || 'N/A'
+      }
+    ];
+
+    if (milestonesResult.rows.length > 0) {
+      milestonesResult.rows.forEach((milestone, index) => {
+        csvData.push({
+          'Section': 'MILESTONES',
+          'Field': `Milestone ${index + 1}`,
+          'Value': `${milestone.name} (${new Date(milestone.start_date).toLocaleDateString()} - ${new Date(milestone.end_date).toLocaleDateString()}) - ${milestone.completed ? 'Completed' : 'In Progress'}`
+        });
+      });
+    }
+
+    if (tasksResult.rows.length > 0) {
+      tasksResult.rows.forEach((task, index) => {
+        csvData.push({
+          'Section': 'TASKS',
+          'Field': `Task ${index + 1}`,
+          'Value': `${task.name} (Due: ${new Date(task.due_date).toLocaleDateString()}) - ${task.completed ? 'Completed' : 'Pending'}`
+        });
+      });
+    }
 
     const csv = stringify(csvData, {
       header: true
@@ -139,7 +202,7 @@ const generateCSVExport = async (userId) => {
     return {
       success: true,
       csv: csv,
-      filename: `goals_export_${Date.now()}.csv`
+      filename: `goal_${goalId}_export_${Date.now()}.csv`
     };
 
   } catch (error) {
