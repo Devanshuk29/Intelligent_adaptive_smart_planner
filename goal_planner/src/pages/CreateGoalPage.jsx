@@ -15,6 +15,8 @@ const CreateGoalPage = () => {
     time_per_week: 10
   });
 
+  const [topics, setTopics] = useState([]);
+  const [newTopic, setNewTopic] = useState('');
   const [roadmapPreview, setRoadmapPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,6 +47,17 @@ const CreateGoalPage = () => {
       return false;
     }
     return true;
+  };
+
+  const handleAddTopic = () => {
+    if (newTopic.trim() && !topics.includes(newTopic.trim())) {
+      setTopics([...topics, newTopic.trim()]);
+      setNewTopic('');
+    }
+  };
+
+  const handleRemoveTopic = (index) => {
+    setTopics(topics.filter((_, i) => i !== index));
   };
 
   const generateRoadmapPreview = () => {
@@ -93,7 +106,8 @@ const CreateGoalPage = () => {
       goalName: formData.name,
       totalWeeks: weeksUntilDeadline,
       milestones: milestones,
-      totalTasks: milestones.reduce((sum, m) => sum + m.tasks.length, 0)
+      totalTasks: milestones.reduce((sum, m) => sum + m.tasks.length, 0),
+      topics: topics
     });
 
     setShowPreview(true);
@@ -118,7 +132,8 @@ const CreateGoalPage = () => {
     setError('');
 
     try {
-      const response = await axios.post(
+      // Step 1: Create goal
+      const goalResponse = await axios.post(
         `${API_URL}/goals`,
         {
           name: formData.name,
@@ -135,10 +150,31 @@ const CreateGoalPage = () => {
         }
       );
 
-      console.log('Goal created:', response.data);
+      const goalId = goalResponse.data.id || goalResponse.data.goal.id;
+      console.log('Goal created:', goalId);
 
-      alert(`✓ Goal "${formData.name}" created successfully with smart roadmap!`);
-      navigate(`/goal/${response.data.id || response.data.goal.id}`);
+      // Step 2: Add topics for confidence tracking
+      if (topics.length > 0) {
+        for (const topicName of topics) {
+          try {
+            await axios.post(
+              `${API_URL}/confidence`,
+              {
+                goalId: goalId,
+                topicName: topicName,
+                confidenceLevel: 0
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+          } catch (err) {
+            console.error(`Failed to add topic ${topicName}:`, err);
+          }
+        }
+        console.log(`Created ${topics.length} topics`);
+      }
+
+      alert(`✓ Goal "${formData.name}" created successfully with ${topics.length} topics!`);
+      navigate(`/goal/${goalId}`);
 
     } catch (err) {
       console.error('Create goal error:', err);
@@ -300,6 +336,130 @@ const CreateGoalPage = () => {
                 </p>
               </div>
 
+              {/* Topics Section - NEW! */}
+              <div style={{
+                backgroundColor: 'var(--color-background-secondary)',
+                border: '0.5px solid var(--color-border-secondary)',
+                borderRadius: 'var(--border-radius-md)',
+                padding: '1.5rem',
+                marginTop: '1rem'
+              }}>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  margin: '0 0 1rem',
+                  color: 'var(--color-text-primary)'
+                }}>
+                  📚 Topics to Track (Optional)
+                </h3>
+
+                {/* Add Topic Input */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <input
+                    type="text"
+                    value={newTopic}
+                    onChange={(e) => setNewTopic(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddTopic()}
+                    placeholder="Add a topic (e.g., Arrays, Sorting, etc.)"
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      border: '0.5px solid var(--color-border-tertiary)',
+                      borderRadius: 'var(--border-radius-md)',
+                      fontSize: '14px',
+                      color: 'var(--color-text-primary)',
+                      backgroundColor: 'var(--color-background-primary)',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTopic}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: 'var(--color-background-info)',
+                      color: 'var(--color-text-info)',
+                      border: '0.5px solid var(--color-border-info)',
+                      borderRadius: 'var(--border-radius-md)',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border-info)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-background-info)';
+                    }}
+                  >
+                    + Add
+                  </button>
+                </div>
+
+                {/* Topics List */}
+                {topics.length > 0 && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem'
+                  }}>
+                    {topics.map((topic, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '0.75rem',
+                          backgroundColor: 'var(--color-background-primary)',
+                          border: '0.5px solid var(--color-border-tertiary)',
+                          borderRadius: 'var(--border-radius-md)'
+                        }}
+                      >
+                        <span style={{
+                          fontSize: '14px',
+                          color: 'var(--color-text-primary)'
+                        }}>
+                          {index + 1}. {topic}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTopic(index)}
+                          style={{
+                            padding: '0.25rem 0.75rem',
+                            backgroundColor: 'transparent',
+                            color: 'var(--color-text-danger)',
+                            border: '0.5px solid var(--color-border-danger)',
+                            borderRadius: 'var(--border-radius-md)',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--color-background-danger)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p style={{
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  margin: topics.length > 0 ? '1rem 0 0' : '0',
+                  textAlign: 'center'
+                }}>
+                  {topics.length} topic{topics.length !== 1 ? 's' : ''} added
+                </p>
+              </div>
+
               {/* Error Message */}
               {error && (
                 <div style={{
@@ -401,6 +561,29 @@ const CreateGoalPage = () => {
                       </p>
                     </div>
                   </div>
+
+                  {/* Topics Preview */}
+                  {roadmapPreview.topics && roadmapPreview.topics.length > 0 && (
+                    <div style={{ backgroundColor: 'var(--color-background-secondary)', padding: '1rem', borderRadius: 'var(--border-radius-md)' }}>
+                      <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: '0 0 0.75rem' }}>Topics to Track</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {roadmapPreview.topics.map((topic, idx) => (
+                          <span
+                            key={idx}
+                            style={{
+                              fontSize: '12px',
+                              backgroundColor: 'var(--color-background-info)',
+                              color: 'var(--color-text-info)',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: 'var(--border-radius-md)'
+                            }}
+                          >
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <h3 style={{ fontSize: '14px', fontWeight: '500', margin: '1rem 0 0.75rem', color: 'var(--color-text-primary)' }}>

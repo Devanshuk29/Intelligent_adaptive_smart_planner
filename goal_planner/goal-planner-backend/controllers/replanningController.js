@@ -68,7 +68,7 @@ const getReplanSuggestions = async (req, res) => {
 
 const executeAutoReplan = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const goalId = req.params.goalId;
 
     if (!goalId) {

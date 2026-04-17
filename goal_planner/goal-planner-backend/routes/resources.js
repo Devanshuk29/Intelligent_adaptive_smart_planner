@@ -2,10 +2,6 @@ const express = require('express');
 const { verifyToken } = require('../middleware/auth');
 const { searchVideos, saveResourceToDb, getResources, getRecommendations, deleteResource} = require('../controllers/resourceController');
 
-/**
- * RESOURCE ROUTES
- * All routes protected with verifyToken middleware
- */
 const router = express.Router();
 
 router.post('/search', verifyToken, searchVideos);

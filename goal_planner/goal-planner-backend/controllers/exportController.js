@@ -2,7 +2,7 @@ const { generatePDFReport, generateCSVExport, getCalendarEvents } = require('../
 
 const exportPDF = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const goalId = req.params.goalId;
 
     if (!goalId) {
@@ -36,7 +36,7 @@ const exportPDF = async (req, res) => {
 
 const exportCSV = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const goalId = req.params.goalId;  
 
     if (!goalId) {
@@ -68,7 +68,7 @@ const exportCSV = async (req, res) => {
 
 const exportCalendar = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const goalId = req.params.goalId;
 
     if (!goalId) {

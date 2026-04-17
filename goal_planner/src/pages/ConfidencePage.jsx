@@ -67,7 +67,7 @@ const ConfidencePage = () => {
     return { label: 'Expert', color: '#16A34A', bgColor: '#BBF7D0' };
   };
 
-  const updateConfidence = async (topicId, newConfidence) => {
+  const updateConfidence = async (topicId, topicName, newConfidence) => {
     setSavingTopicId(topicId);
     setSuccess('');
 
@@ -75,9 +75,9 @@ const ConfidencePage = () => {
       await axios.post(
         `${API_URL}/confidence`,
         {
-          goal_id: goalId,
-          topic_id: topicId,
-          confidence: newConfidence
+          goalId: parseInt(goalId),
+          topicName: topicName,
+          confidenceLevel: parseInt(newConfidence)
         },
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -93,7 +93,9 @@ const ConfidencePage = () => {
 
     } catch (err) {
       console.error('Update confidence error:', err);
-      setError('Failed to update confidence. Try again.');
+      const errorMsg = err.response?.data?.error || 'Failed to update confidence. Try again.';
+      setError(errorMsg);
+      setTimeout(() => setError(''), 3000);
     } finally {
       setSavingTopicId(null);
     }
@@ -286,7 +288,7 @@ const ConfidencePage = () => {
                       max="100"
                       step="1"
                       value={topic.confidence || 0}
-                      onChange={(e) => updateConfidence(topic.id, parseInt(e.target.value))}
+                      onChange={(e) => updateConfidence(topic.id, topic.name, parseInt(e.target.value))}
                       disabled={savingTopicId === topic.id}
                       style={{
                         flex: 1,

@@ -68,11 +68,15 @@ const updateTopicConfidence = async (userId, goalId, topicName, confidenceLevel)
       masteryLevel = 'Learning';
     }
 
+  
     return {
-      success: true,
-      topic: {
-        ...topic,
-        confidence_level: topic.confidence
+       success: true,
+       topic: {
+       id: topic.id,
+       goal_id: topic.goal_id,
+       name: topic.name,
+       confidence: confidenceLevel,  
+       created_at: topic.created_at
       },
       masteryLevel: masteryLevel
     };

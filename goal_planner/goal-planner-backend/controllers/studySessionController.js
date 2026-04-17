@@ -4,7 +4,7 @@ const pool = require('../config/database');
 
 const createStudySession = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const { goalId, durationMinutes, pomodorosCompleted } = req.body;
 
     if (!goalId || !durationMinutes) {
@@ -57,7 +57,7 @@ const createStudySession = async (req, res) => {
 
 const getStats = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
 
     const result = await getStudyStats(userId);
 
@@ -82,7 +82,7 @@ const getStats = async (req, res) => {
 
 const getStudySessionsForGoal = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const { goalId } = req.params;
 
     if (!goalId) {
@@ -93,7 +93,6 @@ const getStudySessionsForGoal = async (req, res) => {
 
     console.log('Fetching study sessions - user:', userId, 'goal:', goalId);
 
-    // Query study sessions directly from database
     const result = await pool.query(
       `SELECT id, user_id, goal_id, duration_minutes, pomodoros_completed, created_at
        FROM study_sessions
@@ -118,4 +117,22 @@ const getStudySessionsForGoal = async (req, res) => {
   }
 };
 
-module.exports = { createStudySession, getStats, getStudySessionsForGoal };
+const getAllStudySessions = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const result = await pool.query(
+      `SELECT * FROM study_sessions 
+       WHERE user_id = $1 
+       ORDER BY created_at DESC`,
+      [userId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching study sessions:', error);
+    res.status(500).json({ error: 'Failed to fetch study sessions' });
+  }
+};
+
+module.exports = { createStudySession, getStats, getStudySessionsForGoal, getAllStudySessions };

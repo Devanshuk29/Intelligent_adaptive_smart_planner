@@ -2,7 +2,7 @@ const { updateStreak, getUserStreak } = require('../services/streakService');
 
 const updateUserStreak = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
 
     const result = await updateStreak(userId);
 
@@ -28,7 +28,7 @@ const updateUserStreak = async (req, res) => {
 
 const getStreak = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
 
     const result = await getUserStreak(userId);
 

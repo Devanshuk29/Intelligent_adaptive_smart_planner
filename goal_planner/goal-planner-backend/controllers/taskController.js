@@ -2,7 +2,7 @@ const pool = require('../config/database');
 
 const updateTaskCompletion = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const taskId = req.params.id;
     const { completed } = req.body;
 
@@ -27,6 +27,7 @@ const updateTaskCompletion = async (req, res) => {
     }
 
     const task = taskResult.rows[0];
+    const milestoneId = task.milestone_id;
 
     if (task.user_id !== userId) {
       return res.status(403).json({
@@ -44,6 +45,35 @@ const updateTaskCompletion = async (req, res) => {
 
     const updatedTask = updateResult.rows[0];
     const goalId = updatedTask.goal_id;
+
+    if (milestoneId) {
+      const milestoneTasksResult = await pool.query(
+        'SELECT id, completed FROM tasks WHERE milestone_id = $1',
+        [milestoneId]
+      );
+
+      const allMilestoneTasks = milestoneTasksResult.rows;
+
+      const allTasksCompleted = allMilestoneTasks.every(t => {
+        if (t.id === taskId) {
+          return completed;
+        }
+        return t.completed;
+      });
+
+      console.log(`[Milestone ${milestoneId}] All tasks completed: ${allTasksCompleted}`);
+
+      await pool.query(
+        'UPDATE milestones SET completed = $1 WHERE id = $2',
+        [allTasksCompleted, milestoneId]
+      );
+
+      if (allTasksCompleted) {
+        console.log(`✅ Milestone ${milestoneId} auto-completed!`);
+      } else if (!completed) {
+        console.log(`❌ Milestone ${milestoneId} marked as incomplete (task uncompleted)`);
+      }
+    }
 
     const tasksResult = await pool.query(
       `SELECT COUNT(*) as total, 
@@ -85,7 +115,7 @@ const updateTaskCompletion = async (req, res) => {
 
 const getTasksForGoal = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const goalId = req.params.goalId;
 
     const goalResult = await pool.query(
@@ -131,7 +161,7 @@ const getTasksForGoal = async (req, res) => {
 
 const getMilestoneWithTasks = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const milestoneId = req.params.milestoneId;
 
     const milestoneResult = await pool.query(

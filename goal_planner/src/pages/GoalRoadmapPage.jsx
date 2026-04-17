@@ -17,7 +17,6 @@ const GoalRoadmapPage = () => {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  // Fetch goal details, milestones, and tasks
   useEffect(() => {
     fetchGoalData();
   }, [goalId]);
@@ -27,7 +26,6 @@ const GoalRoadmapPage = () => {
     setError('');
 
     try {
-      // Get goal details
       const goalRes = await axios.get(
         `${API_URL}/goals/${goalId}`,
         {
@@ -41,7 +39,6 @@ const GoalRoadmapPage = () => {
 
       setGoal(goalData);
 
-      // Make sure milestones is an array
       const milestonesArray = Array.isArray(goalData.milestones) 
         ? goalData.milestones 
         : goalData.milestones && typeof goalData.milestones === 'object' 
@@ -51,12 +48,9 @@ const GoalRoadmapPage = () => {
       console.log('Milestones array set to:', milestonesArray);
       setMilestones(milestonesArray);
 
-      // Get all tasks for this goal
       const tasksRes = await axios.get(
-        `${API_URL}/tasks/goal/${goalId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+         `${API_URL}/tasks/goal/${goalId}`,  
+         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const tasksData = Array.isArray(tasksRes.data) ? tasksRes.data : tasksRes.data.tasks || [];
@@ -72,7 +66,6 @@ const GoalRoadmapPage = () => {
     }
   };
 
-  // Toggle task completion
   const toggleTaskCompletion = async (taskId, currentStatus) => {
     setUpdatingTaskId(taskId);
 
@@ -87,10 +80,8 @@ const GoalRoadmapPage = () => {
 
       console.log('Task updated:', response.data);
 
-      // Update local state
       setTasks(tasks.map(t => t.id === taskId ? { ...t, completed: !currentStatus } : t));
 
-      // Recalculate goal progress
       const updatedTasks = tasks.map(t => t.id === taskId ? { ...t, completed: !currentStatus } : t);
       const completedTasks = updatedTasks.filter(t => t.completed).length;
       const totalTasks = updatedTasks.length;
@@ -106,14 +97,12 @@ const GoalRoadmapPage = () => {
     }
   };
 
-  // Get tasks for a specific milestone
   const getTasksForMilestone = (milestoneId) => {
     const filtered = tasks.filter(t => t.milestone_id === milestoneId);
     console.log(`Tasks for milestone ${milestoneId}:`, filtered);
     return filtered;
   };
 
-  // Calculate milestone progress
   const getMilestoneProgress = (milestoneId) => {
     const milestoneTasks = getTasksForMilestone(milestoneId);
     if (milestoneTasks.length === 0) return 0;

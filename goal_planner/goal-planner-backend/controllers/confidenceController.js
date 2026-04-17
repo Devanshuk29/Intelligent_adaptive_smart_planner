@@ -2,7 +2,7 @@ const { updateTopicConfidence, getGoalTopics, getReadinessScore } = require('../
 
 const updateConfidence = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const { goalId, topicName, confidenceLevel } = req.body;
 
     if (!goalId || !topicName || confidenceLevel === undefined) {
@@ -42,7 +42,7 @@ const updateConfidence = async (req, res) => {
 
 const getTopics = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const goalId = req.params.goalId;
 
     const result = await getGoalTopics(userId, goalId);
@@ -69,7 +69,7 @@ const getTopics = async (req, res) => {
 
 const getReadiness = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const goalId = req.params.goalId;
 
     const result = await getReadinessScore(userId, goalId);

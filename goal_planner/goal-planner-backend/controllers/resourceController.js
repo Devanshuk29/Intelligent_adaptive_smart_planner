@@ -31,7 +31,7 @@ const searchVideos = async (req, res) => {
 
 const saveResourceToDb = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const { goalId, topicName, resourceType, resourceTitle, resourceUrl } = req.body;
 
     if (!goalId || !topicName || !resourceType || !resourceTitle || !resourceUrl) {
@@ -76,7 +76,7 @@ const saveResourceToDb = async (req, res) => {
 
 const getResources = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const goalId = parseInt(req.params.goalId);
 
     if (!goalId) {
@@ -105,7 +105,7 @@ const getResources = async (req, res) => {
 
 const getRecommendations = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const { goalId } = req.params;
 
     if (!goalId) {
@@ -134,7 +134,7 @@ const getRecommendations = async (req, res) => {
 
 const deleteResource = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const { resourceId } = req.params;
 
     if (!resourceId) {
@@ -145,7 +145,6 @@ const deleteResource = async (req, res) => {
 
     console.log('Deleting resource:', resourceId, 'user:', userId);
 
-    // First verify the resource belongs to a goal owned by this user
     const resourceCheck = await pool.query(
       `SELECT r.id FROM resources r 
        JOIN goals g ON r.goal_id = g.id 
@@ -159,7 +158,6 @@ const deleteResource = async (req, res) => {
       });
     }
 
-    // Delete the resource
     const result = await pool.query(
       'DELETE FROM resources WHERE id = $1 RETURNING id',
       [resourceId]

@@ -56,7 +56,6 @@ const saveResource = async (userId, goalId, title, description, url, thumbnail, 
       throw new Error('Missing required fields: userId, goalId, title, url, topic');
     }
 
-    // Verify goal belongs to user
     const goalResult = await pool.query(
       'SELECT * FROM goals WHERE id = $1 AND user_id = $2',
       [goalId, userId]
@@ -66,7 +65,6 @@ const saveResource = async (userId, goalId, title, description, url, thumbnail, 
       throw new Error('Goal not found or does not belong to user');
     }
 
-    // Insert only the columns that exist in your table
     const result = await pool.query(
       `INSERT INTO resources (goal_id, topic, type, title, url, created_at)
        VALUES ($1, $2, $3, $4, $5, NOW())
@@ -95,7 +93,6 @@ const getGoalResources = async (userId, goalId, resourceType = null) => {
 
     console.log('Querying resources - userId:', userId, 'goalId:', goalId);
 
-    // Verify goal belongs to user
     const goalCheck = await pool.query(
       'SELECT id FROM goals WHERE id = $1 AND user_id = $2',
       [goalId, userId]
@@ -105,7 +102,6 @@ const getGoalResources = async (userId, goalId, resourceType = null) => {
       throw new Error('Goal not found or does not belong to user');
     }
 
-    // Only select columns that exist in your table
     let query = `SELECT id, goal_id, topic, type, title, url, created_at 
                  FROM resources WHERE goal_id = $1`;
     let params = [goalId];
@@ -141,7 +137,6 @@ const getRecommendedResources = async (userId, goalId) => {
       throw new Error('userId and goalId are required');
     }
 
-    // Verify goal belongs to user
     const goalCheck = await pool.query(
       'SELECT id FROM goals WHERE id = $1 AND user_id = $2',
       [goalId, userId]
@@ -153,8 +148,6 @@ const getRecommendedResources = async (userId, goalId) => {
 
     console.log('Fetching recommendations for goal:', goalId);
 
-    // Since confidence table may not exist, return empty recommendations
-    // This is a safe fallback that won't crash
     const recommendations = {};
 
     return {

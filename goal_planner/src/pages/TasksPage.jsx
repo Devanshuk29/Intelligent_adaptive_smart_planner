@@ -11,12 +11,11 @@ const TasksPage = () => {
   const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('today'); // today, all, incomplete, completed
+  const [filter, setFilter] = useState('today'); 
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  // Fetch all tasks
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -26,7 +25,6 @@ const TasksPage = () => {
     setError('');
 
     try {
-      // Get all goals first
       const goalsRes = await axios.get(
         `${API_URL}/goals`,
         {
@@ -37,7 +35,6 @@ const TasksPage = () => {
       const goals = Array.isArray(goalsRes.data) ? goalsRes.data : goalsRes.data.goals || [];
       let allTasksData = [];
 
-      // Get tasks for each goal
       for (const goal of goals) {
         try {
           const tasksRes = await axios.get(
@@ -57,7 +54,6 @@ const TasksPage = () => {
       console.log('All tasks loaded:', allTasksData);
       setAllTasks(allTasksData);
 
-      // Filter today's tasks (due today or overdue)
       const today = new Date().toISOString().split('T')[0];
       const todaysTasksList = allTasksData.filter(task => {
         const dueDate = task.due_date ? task.due_date.split('T')[0] : null;
@@ -75,7 +71,6 @@ const TasksPage = () => {
     }
   };
 
-  // Toggle task completion
   const toggleTaskCompletion = async (taskId, currentStatus) => {
     setUpdatingTaskId(taskId);
 
@@ -88,7 +83,6 @@ const TasksPage = () => {
         }
       );
 
-      // Update local state
       setTodaysTasks(todaysTasks.map(t => t.id === taskId ? { ...t, completed: !currentStatus } : t));
       setAllTasks(allTasks.map(t => t.id === taskId ? { ...t, completed: !currentStatus } : t));
 
@@ -100,7 +94,6 @@ const TasksPage = () => {
     }
   };
 
-  // Get filtered tasks
   const getFilteredTasks = () => {
     if (filter === 'today') return todaysTasks;
     if (filter === 'incomplete') return allTasks.filter(t => !t.completed);
@@ -108,7 +101,6 @@ const TasksPage = () => {
     return allTasks;
   };
 
-  // Calculate progress
   const calculateProgress = (taskList) => {
     if (taskList.length === 0) return 0;
     const completed = taskList.filter(t => t.completed).length;

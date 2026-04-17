@@ -2,7 +2,7 @@ const { getStudyHoursByDay, getConfidenceProgress, getGoalCompletionStatus, getS
 
 const getStudyHours = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
 
     const result = await getStudyHoursByDay(userId);
 
@@ -31,7 +31,7 @@ const getStudyHours = async (req, res) => {
 
 const getConfidence = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const goalId = req.params.goalId;
 
     if (!goalId) {
@@ -67,7 +67,7 @@ const getConfidence = async (req, res) => {
 
 const getGoalCompletion = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
 
     const result = await getGoalCompletionStatus(userId);
 
@@ -93,7 +93,7 @@ const getGoalCompletion = async (req, res) => {
 
 const getStreaks = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
 
     const result = await getStreakStatistics(userId);
 
@@ -119,7 +119,7 @@ const getStreaks = async (req, res) => {
 
 const getDashboard = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
 
     const result = await getDashboardSummary(userId);
 

@@ -19,12 +19,10 @@ const LogStudySessionPage = () => {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  // Fetch goals
   useEffect(() => {
     fetchGoals();
   }, []);
 
-  // Update topics when goal changes
   useEffect(() => {
     if (selectedGoalId) {
       fetchTopicsForGoal(selectedGoalId);
@@ -74,17 +72,14 @@ const LogStudySessionPage = () => {
 
     } catch (err) {
       console.error('Fetch topics error:', err);
-      // Topics are optional, don't block
       setTopics([]);
     }
   };
 
-  // Calculate pomodoros
   const calculatePomodoros = (minutes) => {
     return Math.round(minutes / 25);
   };
 
-  // Submit study session
   const handleSubmitSession = async (e) => {
   e.preventDefault();
 
@@ -120,10 +115,8 @@ const LogStudySessionPage = () => {
 
     console.log('Study session logged:', response.data);
 
-    // Show success message
     setSuccess(`✅ ${pomodoros} pomodoro${pomodoros !== 1 ? 's' : ''} logged! Great work! 🔥`);
 
-    // Reset form
     setTimeout(() => {
       setDuration(25);
       setTopic('');

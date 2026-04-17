@@ -13,6 +13,7 @@ const aiRoutes = require('./routes/ai');
 const analyticsRoutes = require('./routes/analytics');
 const exportRoutes = require('./routes/exports');
 const replanningRoutes = require('./routes/replanning');
+const milestonesRoutes = require('./routes/milestones');
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/exports', exportRoutes);
 app.use('/api/replanning', replanningRoutes);
+app.use('/api/milestones', milestonesRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running!' });
