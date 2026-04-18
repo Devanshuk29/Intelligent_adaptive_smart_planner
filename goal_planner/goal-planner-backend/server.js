@@ -18,7 +18,7 @@ const milestonesRoutes = require('./routes/milestones');
 const app = express();
 
 app.use(cors({
-  origin: '*',
+  origin: ['http://localhost:5173', 'goalplanner-ochre.vercel.app'],
   credentials: true}
 ));
 
